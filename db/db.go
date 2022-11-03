@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"github.com/78planet/nomadcoin/utils"
 	"github.com/boltdb/bolt"
 )
@@ -10,6 +9,7 @@ const (
 	dbName      = "blockchain.db"
 	dataBucket  = "data"
 	blockBucket = "blocks"
+	checkpoint  = "checkpoint"
 )
 
 var db *bolt.DB
@@ -30,8 +30,12 @@ func DB() *bolt.DB {
 	return db
 }
 
+func Close() {
+	utils.HandleErr(DB().Close())
+}
+
 func SaveBlock(hash string, data []byte) {
-	fmt.Printf("Saving block %s\n Data: %b\n", hash, data)
+	//fmt.Printf("Saving block %s\n Data: %b\n", hash, data)
 	err := DB().Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(blockBucket))
 		err := bucket.Put([]byte(hash), data)
@@ -40,11 +44,33 @@ func SaveBlock(hash string, data []byte) {
 	utils.HandleErr(err)
 }
 
-func SaveBlockChain(data []byte) {
+func SaveCheckpoint(data []byte) {
 	err := DB().Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(dataBucket))
-		err := bucket.Put([]byte("checkpoint"), data)
+		err := bucket.Put([]byte(checkpoint), data)
 		return err
 	})
 	utils.HandleErr(err)
+}
+
+func Checkpoint() []byte {
+	var data []byte
+	err := DB().View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(dataBucket))
+		data = bucket.Get([]byte(checkpoint))
+		return nil
+	})
+	utils.HandleErr(err)
+	return data
+}
+
+func Block(hash string) []byte {
+	var data []byte
+	err := DB().View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(blockBucket))
+		data = bucket.Get([]byte(hash))
+		return nil
+	})
+	utils.HandleErr(err)
+	return data
 }

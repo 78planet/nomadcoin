@@ -6,6 +6,7 @@ import (
 	"github.com/78planet/nomadcoin/explorer"
 	"github.com/78planet/nomadcoin/rest"
 	"os"
+	"runtime"
 )
 
 func usage() {
@@ -13,8 +14,7 @@ func usage() {
 	fmt.Printf("input option\n\n")
 	fmt.Printf("port: \n")
 	fmt.Printf("mode: html or rest")
-
-	os.Exit(0)
+	runtime.Goexit()
 }
 
 func Start() {
